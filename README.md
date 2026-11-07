@@ -99,7 +99,6 @@ $env:DB_PASSWORD="YOUR_MYSQL_PASSWORD"
 
 Replace `YOUR_MYSQL_PASSWORD` with your actual MySQL password.
 
-
 ## 🚀 How to Run the Project
 
 ### Method 1: Using VSCODE
