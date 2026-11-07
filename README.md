@@ -99,11 +99,9 @@ $env:DB_PASSWORD="YOUR_MYSQL_PASSWORD"
 
 Replace `YOUR_MYSQL_PASSWORD` with your actual MySQL password.
 
-**Note:** Never upload actual database passwords or credentials to GitHub.
-
 ## 🚀 How to Run the Project
 
-### Method 1: Using IntelliJ IDEA
+### Method 1: Using VSCODE
 
 1. Clone or download this repository.
 2. Open the project in VSCODE.
