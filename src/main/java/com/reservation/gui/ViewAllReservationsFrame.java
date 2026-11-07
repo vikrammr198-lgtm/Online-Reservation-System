@@ -7,6 +7,9 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.util.List;
 
 public class ViewAllReservationsFrame extends JFrame {
@@ -25,7 +28,7 @@ public class ViewAllReservationsFrame extends JFrame {
 
         // Window settings
         setTitle("My Reservations");
-        setSize(900, 450);
+        setSize(1050, 450);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
@@ -36,13 +39,13 @@ public class ViewAllReservationsFrame extends JFrame {
         mainPanel.setBackground(new Color(240, 245, 250));
 
         mainPanel.setBorder(
-            BorderFactory.createEmptyBorder(20, 20, 20, 20)
+                BorderFactory.createEmptyBorder(20, 20, 20, 20)
         );
 
         // Heading
         JLabel heading = new JLabel(
-            "MY RESERVATIONS",
-            SwingConstants.CENTER
+                "MY RESERVATIONS",
+                SwingConstants.CENTER
         );
 
         heading.setFont(new Font("Arial", Font.BOLD, 20));
@@ -52,13 +55,13 @@ public class ViewAllReservationsFrame extends JFrame {
 
         // Table columns
         String[] columns = {
-            "PNR",
-            "Passenger Name",
-            "Train Number",
-            "Class",
-            "Journey Date",
-            "Source",
-            "Destination"
+                "PNR",
+                "Passenger Name",
+                "Train Number",
+                "Class",
+                "Journey Date",
+                "Source",
+                "Destination"
         };
 
         tableModel = new DefaultTableModel(columns, 0) {
@@ -76,16 +79,27 @@ public class ViewAllReservationsFrame extends JFrame {
         reservationTable.setFont(new Font("Arial", Font.PLAIN, 14));
         reservationTable.setRowHeight(30);
 
+        // Enable individual cell selection
+        reservationTable.setCellSelectionEnabled(true);
+
+        reservationTable.setRowSelectionAllowed(true);
+        reservationTable.setColumnSelectionAllowed(true);
+
+        reservationTable.setSelectionMode(
+                ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
+        );
+
+        reservationTable.getColumnModel().getSelectionModel()
+                .setSelectionMode(
+                        ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
+                );
+
         // Row selection styling
         reservationTable.setSelectionBackground(
-            new Color(200, 220, 245)
+                new Color(200, 220, 245)
         );
 
         reservationTable.setSelectionForeground(Color.BLACK);
-
-        reservationTable.setSelectionMode(
-            ListSelectionModel.SINGLE_SELECTION
-        );
 
         // Center-align table content
         DefaultTableCellRenderer centerRenderer =
@@ -101,24 +115,44 @@ public class ViewAllReservationsFrame extends JFrame {
         }
 
         // Adjust column widths
-        reservationTable.getColumnModel().getColumn(0).setPreferredWidth(100);
-        reservationTable.getColumnModel().getColumn(1).setPreferredWidth(180);
-        reservationTable.getColumnModel().getColumn(2).setPreferredWidth(120);
-        reservationTable.getColumnModel().getColumn(3).setPreferredWidth(80);
-        reservationTable.getColumnModel().getColumn(4).setPreferredWidth(120);
-        reservationTable.getColumnModel().getColumn(5).setPreferredWidth(120);
-        reservationTable.getColumnModel().getColumn(6).setPreferredWidth(120);
+        reservationTable.setAutoResizeMode(
+                JTable.AUTO_RESIZE_OFF
+        );
+
+        reservationTable.getColumnModel().getColumn(0)
+                .setPreferredWidth(160);
+
+        reservationTable.getColumnModel().getColumn(1)
+                .setPreferredWidth(180);
+
+        reservationTable.getColumnModel().getColumn(2)
+                .setPreferredWidth(130);
+
+        reservationTable.getColumnModel().getColumn(3)
+                .setPreferredWidth(90);
+
+        reservationTable.getColumnModel().getColumn(4)
+                .setPreferredWidth(140);
+
+        reservationTable.getColumnModel().getColumn(5)
+                .setPreferredWidth(130);
+
+        reservationTable.getColumnModel().getColumn(6)
+                .setPreferredWidth(130);
 
         // Table header styling
         reservationTable.getTableHeader().setFont(
-            new Font("Arial", Font.BOLD, 14)
+                new Font("Arial", Font.BOLD, 14)
         );
 
         reservationTable.getTableHeader().setBackground(
-            new Color(30, 100, 180)
+                new Color(30, 100, 180)
         );
 
         reservationTable.getTableHeader().setForeground(Color.WHITE);
+
+        // Enable Ctrl + C copying
+        enableCopyFunction();
 
         JScrollPane scrollPane = new JScrollPane(reservationTable);
 
@@ -133,7 +167,7 @@ public class ViewAllReservationsFrame extends JFrame {
 
         // Button panel
         JPanel bottomPanel = new JPanel(
-            new FlowLayout(FlowLayout.CENTER, 10, 5)
+                new FlowLayout(FlowLayout.CENTER, 10, 5)
         );
 
         bottomPanel.setBackground(new Color(240, 245, 250));
@@ -163,6 +197,91 @@ public class ViewAllReservationsFrame extends JFrame {
         button.setFont(new Font("Arial", Font.BOLD, 14));
     }
 
+    // Enable copying selected table cells using Ctrl + C
+    private void enableCopyFunction() {
+
+        KeyStroke copyKey = KeyStroke.getKeyStroke(
+                KeyEvent.VK_C,
+                InputEvent.CTRL_DOWN_MASK
+        );
+
+        reservationTable.getInputMap(
+                JComponent.WHEN_FOCUSED
+        ).put(copyKey, "copySelectedCells");
+
+        reservationTable.getActionMap().put(
+                "copySelectedCells",
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(
+                            java.awt.event.ActionEvent e) {
+
+                        copySelectedCells();
+                    }
+                }
+        );
+    }
+
+    // Copy selected cells to clipboard
+    private void copySelectedCells() {
+
+        int[] selectedRows = reservationTable.getSelectedRows();
+
+        int[] selectedColumns =
+                reservationTable.getSelectedColumns();
+
+        if (selectedRows.length == 0
+                || selectedColumns.length == 0) {
+
+            return;
+        }
+
+        StringBuilder copiedData = new StringBuilder();
+
+        for (int rowIndex = 0;
+             rowIndex < selectedRows.length;
+             rowIndex++) {
+
+            int row = selectedRows[rowIndex];
+
+            for (int columnIndex = 0;
+                 columnIndex < selectedColumns.length;
+                 columnIndex++) {
+
+                int column = selectedColumns[columnIndex];
+
+                if (reservationTable.isCellSelected(row, column)) {
+
+                    Object value =
+                            reservationTable.getValueAt(row, column);
+
+                    if (value != null) {
+                        copiedData.append(value);
+                    }
+                }
+
+                if (columnIndex < selectedColumns.length - 1) {
+                    copiedData.append("\t");
+                }
+            }
+
+            if (rowIndex < selectedRows.length - 1) {
+                copiedData.append("\n");
+            }
+        }
+
+        if (!copiedData.isEmpty()) {
+
+            StringSelection selection =
+                    new StringSelection(copiedData.toString());
+
+            Toolkit.getDefaultToolkit()
+                    .getSystemClipboard()
+                    .setContents(selection, null);
+        }
+    }
+
     // Load reservations
     private void loadReservations() {
 
@@ -174,13 +293,13 @@ public class ViewAllReservationsFrame extends JFrame {
         for (Reservation reservation : reservations) {
 
             Object[] row = {
-                reservation.getPnr(),
-                reservation.getPassengerName(),
-                reservation.getTrainNumber(),
-                reservation.getClassType(),
-                reservation.getJourneyDate(),
-                reservation.getSourceStation(),
-                reservation.getDestinationStation()
+                    reservation.getPnr(),
+                    reservation.getPassengerName(),
+                    reservation.getTrainNumber(),
+                    reservation.getClassType(),
+                    reservation.getJourneyDate(),
+                    reservation.getSourceStation(),
+                    reservation.getDestinationStation()
             };
 
             tableModel.addRow(row);
@@ -189,8 +308,8 @@ public class ViewAllReservationsFrame extends JFrame {
         if (reservations.isEmpty()) {
 
             JOptionPane.showMessageDialog(
-                this,
-                "You have no reservations!"
+                    this,
+                    "You have no reservations!"
             );
         }
     }
